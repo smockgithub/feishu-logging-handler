@@ -5,7 +5,7 @@
 - 支持异步，不需要等待http请求提高性能
 
 # 安装
-pip install feishu_logging_handler
+pip install feishu-logging-handler
 
 # 配置
 - 创建一个飞书群组
