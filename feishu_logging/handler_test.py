@@ -80,5 +80,5 @@ class FeiShuWebhookHandler(logging.Handler):
 
 if __name__ == "__main__":
     record = {}
-    asyncio.run(FeiShuWebhookHandler("https://open.feishu.cn/open-apis/bot/v2/hook/78711d1c-83ec-4420-9f9d-205e9ccf0eda").emit(record))
+    asyncio.run(FeiShuWebhookHandler("").emit(record))
         
