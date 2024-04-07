@@ -36,25 +36,19 @@ class FeiShuWebhookHandler(logging.Handler):
         
         return FeiShuWebhookHandler.connection
     
-    @staticmethod
-    async def func(connection,url,payload_message):
-        print(1)
-        res = await connection.post(url=url,json=payload_message)
-        print(2)
 
     @staticmethod
     async def post(connection,url,payload_message):
         print("start post")
-        # await asyncio.sleep(1)
-        # asyncio.create_task(FeiShuWebhookHandler.func(connection,url,payload_message))
         res = await connection.post(url=url,json=payload_message)
         print("end post")
+
     
     @staticmethod
     def send(connection,url,payload_message):
         asyncio.run(FeiShuWebhookHandler.post(connection,url,payload_message))
 
-    def emit(self, record):
+    async def emit(self, record):
         """
         Emit a record.
         """
@@ -74,8 +68,8 @@ class FeiShuWebhookHandler(logging.Handler):
             connection = self.getConnection()
             url = self.url
 
-            t1 =  asyncio.create_task(FeiShuWebhookHandler.post(connection,url,payload_message))
-            print("end 这里应该是最先出现的")
+            task = asyncio.create_task(FeiShuWebhookHandler.post(connection,url,payload_message))
+            print("end")
 
             # t1 = Thread(target=FeiShuWebhookHandler.send, args=(connection,url,payload_message,))
             # t1.start()
@@ -83,4 +77,8 @@ class FeiShuWebhookHandler(logging.Handler):
             
         except Exception:
             self.handleError(record)
+
+if __name__ == "__main__":
+    record = {}
+    asyncio.run(FeiShuWebhookHandler("https://open.feishu.cn/open-apis/bot/v2/hook/78711d1c-83ec-4420-9f9d-205e9ccf0eda").emit(record))
         
