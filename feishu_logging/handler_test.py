@@ -37,17 +37,17 @@ class FeiShuWebhookHandler(logging.Handler):
         return FeiShuWebhookHandler.connection
     
     @staticmethod
-    async def func():
+    async def func(connection,url,payload_message):
         print(1)
-        await asyncio.sleep(3)
+        res = await connection.post(url=url,json=payload_message)
         print(2)
 
     @staticmethod
     async def post(connection,url,payload_message):
         print("start post")
         # await asyncio.sleep(1)
-        FeiShuWebhookHandler.func()
-        # res = await connection.post(url=url,json=payload_message)
+        # asyncio.create_task(FeiShuWebhookHandler.func(connection,url,payload_message))
+        res = await connection.post(url=url,json=payload_message)
         print("end post")
     
     @staticmethod
@@ -74,7 +74,7 @@ class FeiShuWebhookHandler(logging.Handler):
             connection = self.getConnection()
             url = self.url
 
-            asyncio.run(FeiShuWebhookHandler.post(connection,url,payload_message))
+            t1 =  asyncio.create_task(FeiShuWebhookHandler.post(connection,url,payload_message))
             print("end 这里应该是最先出现的")
 
             # t1 = Thread(target=FeiShuWebhookHandler.send, args=(connection,url,payload_message,))
