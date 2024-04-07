@@ -39,6 +39,8 @@ class FeiShuWebhookHandler(logging.Handler):
     @staticmethod
     async def post(connection,url,payload_message):
         res = await connection.post(url=url,json=payload_message)
+        if res.status_code!=200:
+            print("feishu logging handler error : {}".format(res.text))
     
     @staticmethod
     def send(connection,url,payload_message):
