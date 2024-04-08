@@ -36,19 +36,42 @@ class FeiShuWebhookHandler(logging.Handler):
         
         return FeiShuWebhookHandler.connection
     
-
+    # @staticmethod
+    # async def post2(connection,url,payload_message):
+    #     print("post2 start")
+    #     res = await connection.post(url=url,json=payload_message)
+    #     print("post2 end")
     @staticmethod
     async def post(connection,url,payload_message):
         print("start post")
-        res = await connection.post(url=url,json=payload_message)
+        res = await FeiShuWebhookHandler.post2(connection,url,payload_message)
         print("end post")
+        return res
+        # await asyncio.sleep(2)
 
-    
     @staticmethod
     def send(connection,url,payload_message):
         asyncio.run(FeiShuWebhookHandler.post(connection,url,payload_message))
 
-    async def emit(self, record):
+    @staticmethod
+    async def test(fut):
+        print(1)
+        await asyncio.sleep(2)
+        print(2)
+        fut.set_result("666")
+
+    @staticmethod
+    async def main():
+        print(111)
+        loop = asyncio.get_running_loop()
+        fut = loop.create_future()
+        loop.create_task(FeiShuWebhookHandler.test(fut))
+        # await FeiShuWebhookHandler.test(fut)
+        await fut
+        print(222)
+
+
+    def emit(self, record):
         """
         Emit a record.
         """
@@ -65,11 +88,17 @@ class FeiShuWebhookHandler(logging.Handler):
                 }
             }
 
-            connection = self.getConnection()
-            url = self.url
+            # connection = self.getConnection()
+            # url = self.url
 
-            task = asyncio.create_task(FeiShuWebhookHandler.post(connection,url,payload_message))
-            print("end")
+            asyncio.run(FeiShuWebhookHandler.main())
+
+
+            print("end emit")
+            
+
+
+            
 
             # t1 = Thread(target=FeiShuWebhookHandler.send, args=(connection,url,payload_message,))
             # t1.start()

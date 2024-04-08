@@ -12,7 +12,10 @@ http_handler = FeiShuWebhookHandler(url,"goods_system")
 http_handler.setLevel(logging.DEBUG)
 log_feishu.addHandler(http_handler)
 
-
-log_feishu.error("错误测试")
+log_feishu.error("ffffff")
+# try :
+#     f = 1/0
+# except Exception as e:
+    
 import time
 time.sleep(5)
