@@ -2,10 +2,12 @@
 通过webhook将自定义服务的消息推送至飞书
 
 特点：
-- 支持异步，不需要等待http请求提高性能
+- 异步有可能会遇到loop已释放的问题，调整为同步。启用多线程，所以性能ok
+- 增加缓存支持，重复消息设置一个时间周期，不会重复发送
+- 支持 filter_key 来过滤部分error的key
 
 # 安装
-pip install feishu-logging-handler
+pip install feishu-logging-handler -i https://pypi.org/simple
 
 # 配置
 - 创建一个飞书群组
@@ -18,7 +20,7 @@ pip install feishu-logging-handler
 ```
 from feishu_logging.handler import FeiShuWebhookHandler
 log_feishu = logging.getLogger("feishu")
-http_handler = FeiShuWebhookHandler("https://open.feishu.cn/open-apis/bot/v2/hook/xxx","key_word")
+http_handler = FeiShuWebhookHandler("https://open.feishu.cn/open-apis/bot/v2/hook/xxx","key_word",cache_time=10,filter_key=["funcName","msg","levelname","args","pathname","filename","threadName"]) # cache_time = 0为不启用cache
 http_handler.setLevel(logging.DEBUG)
 log_feishu.addHandler(http_handler)
 ```

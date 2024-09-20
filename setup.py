@@ -5,7 +5,7 @@ with open("README.md", "r",encoding="utf-8") as fh:
 
 setuptools.setup(
   name="feishu_logging_handler",
-  version="1.0.1",
+  version="1.0.4",
   author="smock",
   author_email="smockg@gmail.com",
   description="logging的飞书handler",
@@ -18,7 +18,7 @@ setuptools.setup(
   "License :: OSI Approved :: MIT License",
   "Operating System :: OS Independent",
   ],
-  install_requires=['httpx'],
+  install_requires=['httpx','cachetools'],
   python_requires='>=3'
 )
 

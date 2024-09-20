@@ -11,7 +11,7 @@
             "program": "${file}",
             "console": "integratedTerminal",
             "env": {
-                "feishu_url":"https://open.feishu.cn/open-apis/bot/v2/hook/78711d1c-83ec-4420-9f9d-205e9ccf0eda"
+                "feishu_url":"https://open.feishu.cn/open-apis/bot/v2/hook/5cda02dc-cc85-4968-a1fe-c30f96319806"
             }
         }
     ]
