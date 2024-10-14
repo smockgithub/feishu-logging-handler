@@ -6,6 +6,7 @@ import json
 import time
 from cachetools import LRUCache, TTLCache
 import base64
+import traceback
 
 class FeiShuWebhookHandler(logging.Handler):
     """
@@ -40,7 +41,10 @@ class FeiShuWebhookHandler(logging.Handler):
             result = {}
             for key in self.filter_key:
                 if key in record.__dict__:
-                    result[key] = record.__dict__[key]
+                    if key == "msg" and type(record.__dict__[key]) != str:
+                        result[key] = str(record.__dict__[key])
+                    else:
+                        result[key] = record.__dict__[key]
             return result
         else:
             return record.__dict__
@@ -77,13 +81,18 @@ class FeiShuWebhookHandler(logging.Handler):
         Emit a record.
         """
         try:
+            stack_info = ""
             timeArray = time.localtime(int(record.created))
             otherStyleTime = time.strftime("%Y-%m-%d %H:%M:%S", timeArray)
+            if "stack_info" in self.filter_key:
+                # if not record.stack_info:
+                #     record.stack_info = "请看最后面详情"
+                stack_info = traceback.format_exc()
             payload_message = {
                 "msg_type": "text",
                 "content": {
                     # @ 单个用户 <at user_id="ou_xxx">名字</at>
-                    "text": "[{}] [{}] ".format(otherStyleTime,self.key_word) + "\r\n" + json.dumps(self.mapLogRecord(record),indent=1,ensure_ascii=False)
+                    "text": "[{}] [{}] ".format(otherStyleTime,self.key_word) + "\r\n" + json.dumps(self.mapLogRecord(record),indent=1,ensure_ascii=False) + "\r\n" + stack_info
                     # @ 所有人 <at user_id="all">所有人</at>
                     # "text": content + "<at user_id=\"all\">test</at>"
                 }
@@ -91,7 +100,7 @@ class FeiShuWebhookHandler(logging.Handler):
 
             # 判断是否要推送
             if self.cache_time!=0:
-                b = base64.b64encode(bytes(record.msg, 'utf-8')) # bytes
+                b = base64.b64encode(bytes(str(record.msg), 'utf-8')) # bytes
                 base64_str = b.decode('utf-8') # convert bytes to string
                 value = self.cache.get(base64_str)
                 if value:
