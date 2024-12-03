@@ -12,7 +12,8 @@
             "console": "integratedTerminal",
             "env": {
                 "feishu_url":"https://open.feishu.cn/open-apis/bot/v2/hook/5cda02dc-cc85-4968-a1fe-c30f96319806"
-            }
+            },
+            "justMyCode": false
         }
     ]
 }

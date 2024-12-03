@@ -5,7 +5,7 @@ with open("README.md", "r",encoding="utf-8") as fh:
 
 setuptools.setup(
   name="feishu_logging_handler",
-  version="1.0.6",
+  version="1.0.8",
   author="smock",
   author_email="smockg@gmail.com",
   description="logging的飞书handler",

@@ -2,6 +2,7 @@
 通过webhook将自定义服务的消息推送至飞书
 
 ## 更新记录
+- 1.0.7 增加了普通错误的简化输出，便于阅读。支持simple_log_levelno和simple_format
 - 1.0.6 修复了bug、stack_info并且可以换行输出
 - 1.0.5 增加stack_info的支持
 - 1.0.5 增加了error不是str的支持(特别是try except的时候)

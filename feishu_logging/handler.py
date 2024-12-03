@@ -15,13 +15,17 @@ class FeiShuWebhookHandler(logging.Handler):
     connection = None
     cache = TTLCache(maxsize=1024,ttl=60)
 
-    def __init__(self,webhook_url,key_word="feishu",cache_time=0,filter_key=[]):
-        """初始化logger
+    def __init__(self,webhook_url,key_word="feishu",cache_time=0,filter_key=[],simple_log_levelno=logging.ERROR,simple_format = "",At=None):
+        """_summary_
 
         Args:
-            webhook_url (_type_): 飞书机器人url
-            key_word (str, optional): 关键词过滤. Defaults to "feishu".
-            cache (int, optional): 同时间内同error不再重复推送，如果为0则每次都推送（too many request）. Defaults to 0.
+            webhook_url (_type_): _description_
+            key_word (str, optional): 机器人关键词（配合机器人过滤用） Defaults to "feishu".
+            cache_time (int, optional): 多少秒不再输出同一个错误，避免同一个错误频繁抛出造成机器人卡死（0为不限制） Defaults to 0.
+            filter_key (list, optional): 全量输出时，过滤出哪些key Defaults to [].
+            simple_log_levelno (int, optional): 异常等级超过多少则全量输出内容，否则简化输出 Defaults to 40.
+            simple_format (str, optional): 类似这样的格式： %(asctime)s - %(filename)s[line:%(lineno)d] - %(levelname)s - %(message)s
+            At (list, optional): https://open.feishu.cn/document/client-docs/bot-v3/add-custom-bot?lang=zh-CN#756b882f // @ 单个用户 <at user_id="ou_userid">名字</at>   // @ 所有人 <at user_id="all">所有人</at>
         """
         logging.Handler.__init__(self)
         self.url = webhook_url
@@ -30,6 +34,9 @@ class FeiShuWebhookHandler(logging.Handler):
         if cache_time>0:
             self.cache = TTLCache(maxsize=1024,ttl=cache_time)
         self.filter_key = filter_key
+        self.simple_log_levelno = simple_log_levelno
+        self.simple_format = simple_format
+        self.At = At
 
     def mapLogRecord(self, record):
         """
@@ -41,13 +48,36 @@ class FeiShuWebhookHandler(logging.Handler):
             result = {}
             for key in self.filter_key:
                 if key in record.__dict__:
-                    if key == "msg" and type(record.__dict__[key]) != str:
+                    if type(record.__dict__[key]) != str:
                         result[key] = str(record.__dict__[key])
                     else:
                         result[key] = record.__dict__[key]
             return result
         else:
             return record.__dict__
+
+    def getText(self,record):
+        stack_info = ""
+        timeArray = time.localtime(int(record.created))
+        otherStyleTime = time.strftime("%Y-%m-%d %H:%M:%S", timeArray)
+        if "stack_info" in self.filter_key:
+            # if not record.stack_info:
+            #     record.stack_info = "请看最后面详情"
+            stack_info = traceback.format_exc()
+        
+        record.asctime = time.strftime("%Y-%m-%d %H:%M:%S", time.localtime(int(record.created)))
+        record.message = record.getMessage()
+        self.msecs = int((record.created - int(record.created)) * 1000) + 0.0
+
+        text = ""
+        if record and hasattr(record,"levelno") and record.levelno<self.simple_log_levelno and self.simple_format: #部分输出 简化输出
+            values = record.__dict__
+            text = f"[{self.key_word}] - "+self.simple_format%values
+            return text
+        else:
+            text = f"[{self.key_word}] [{otherStyleTime}] \r\n" + json.dumps(self.mapLogRecord(record),indent=1,ensure_ascii=False) + "\r\n" + stack_info
+            return text
+
 
     @classmethod
     def getConnection(cls):
@@ -81,18 +111,24 @@ class FeiShuWebhookHandler(logging.Handler):
         Emit a record.
         """
         try:
-            stack_info = ""
-            timeArray = time.localtime(int(record.created))
-            otherStyleTime = time.strftime("%Y-%m-%d %H:%M:%S", timeArray)
-            if "stack_info" in self.filter_key:
-                # if not record.stack_info:
-                #     record.stack_info = "请看最后面详情"
-                stack_info = traceback.format_exc()
+            text = self.getText(record)
+
+            if record.levelno>=40 and self.At and type(self.At)==list:
+                at_text = ""
+                for userid in self.At:
+                    if userid=="all":
+                        at_text = at_text + " <at user_id=\"all\">所有人</at>"
+                    else:
+                        at_text = at_text + f" <at user_id=\"ou_{userid}\">userid</at>"
+
+                if at_text:
+                    text = text + at_text
+
             payload_message = {
                 "msg_type": "text",
                 "content": {
                     # @ 单个用户 <at user_id="ou_xxx">名字</at>
-                    "text": "[{}] [{}] ".format(otherStyleTime,self.key_word) + "\r\n" + json.dumps(self.mapLogRecord(record),indent=1,ensure_ascii=False) + "\r\n" + stack_info
+                    "text": text
                     # @ 所有人 <at user_id="all">所有人</at>
                     # "text": content + "<at user_id=\"all\">test</at>"
                 }
